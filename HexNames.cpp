@@ -7,7 +7,7 @@
 
 namespace fs = std::filesystem;
 
-std::string extract_name(const std::string path)
+std::string extract_name(const std::string path, uint32_t offset)
 {
 	std::vector<unsigned char> bytes;
 	std::ifstream input;
@@ -18,7 +18,7 @@ std::string extract_name(const std::string path)
 		std::cout << "Failed to open " << path << '\n';
 		return "";
 	}
-	input.seekg(0x68, std::ios::beg);
+	input.seekg(offset, std::ios::beg);
 	while (!input.eof())
 	{
 		unsigned char byte;
@@ -47,12 +47,15 @@ std::string replace_with_extract(const std::string path, const std::string name)
 }
 
 int main(int argc, char* argv[])
-{
+{	
+	uint32_t offset;
+	std::cout << "Enter offset: ";
+	std::cin >> std::hex >> offset;
 	for (int i{ 1 }; i < argc; ++i)
 	{
 		if (fs::exists(argv[i]))
 		{
-			std::string extracted_name{ extract_name(argv[i]) };
+			std::string extracted_name{ extract_name(argv[i], offset) };
 			if (extracted_name.empty())
 			{
 				std::cout << "Failed to find name for " << argv[i] << '\n';
@@ -62,5 +65,5 @@ int main(int argc, char* argv[])
 		}		
 	}
 	std::cout << "Operation finished." << '\n';
-	getchar();
+	static_cast<void>(getchar());
 }
