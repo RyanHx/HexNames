@@ -38,31 +38,29 @@ std::string extract_name(const fs::path path, uint32_t offset)
 	return std::string(bytes.begin(), bytes.end());
 }
 
-fs::path update_path(fs::path path, const std::string name)
-{
-	return path.replace_filename(name).string() + path.extension().string();
-}
-
 int main(int argc, char* argv[])
 {
 	uint32_t offset;
 	std::cout << "Enter offset: ";
 	std::cin >> std::hex >> offset;
 	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
 	for (int i{ 1 }; i < argc; ++i)
 	{
 		fs::path file_path{ argv[i] };
-		if (fs::exists(file_path))
+		if (!fs::exists(file_path))
+			continue;
+
+		std::string extracted_name{ extract_name(file_path, offset) };
+		if (extracted_name.empty())
 		{
-			std::string extracted_name{ extract_name(file_path, offset) };
-			if (extracted_name.empty())
-			{
-				std::cout << "Failed to find name for " << file_path.string() << '\n';
-				continue;
-			}
-			fs::rename(file_path, update_path(file_path, extracted_name));
+			std::cout << "Failed to find name for " << file_path.string() << '\n';
+			continue;
 		}
+		fs::path new_file_path{ file_path.replace_filename(extracted_name).string() + file_path.extension().string() };
+		fs::rename(file_path, new_file_path);
 	}
+
 	std::cout << "Operation finished." << '\n';
 	static_cast<void>(getchar());
 }
